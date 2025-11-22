@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DisasterAlert</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  padding-top: 50px;
+}
+.container {
+  width: 500px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+h2, h3 { text-align: center; }
+input, textarea, select, button {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+textarea { resize: vertical; height: 80px; }
+button {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+button:hover { background: #0056b3; }
+.card {
+  background: #f9f9f9;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border-left: 5px solid #007bff;
+  transition: transform 0.2s;
+}
+.card:hover { transform: scale(1.02); }
+.card button {
+  width: auto;
+  margin: 5px 5px 0 0;
+  padding: 5px 10px;
+  font-size: 0.9em;
+  background: #007bff;
+  color: #fff;
+}
+.error { color: red; font-size: 0.9em; display: none; margin-top: -5px; margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h2>DisasterAlert</h2>
+
+<div class="form-section">
+<h3>Report Emergency</h3>
+<input id="title" placeholder="Title">
+<div id="title-error" class="error">Invalid Title</div>
+<textarea id="description" placeholder="Description"></textarea>
+<div id="description-error" class="error">Invalid Description</div>
+<input id="location" placeholder="Location">
+<div id="location-error" class="error">Invalid Location</div>
+<select id="category">
+  <option>Fire</option>
+  <option>Flood</option>
+  <option>Accident</option>
+  <option>Electricity</option>
+</select>
+<button onclick="reportEmergency()">Report Emergency</button>
+</div>
+
+<div class="dashboard-section">
+<h3>All Emergencies</h3>
+<div id="admin-list"></div>
+</div>
+</div>
+
+<script>
+const API_URL = "http://localhost:3000/api";
+
+// Validation functions
+function isValidText(input) {
+  return /^[a-zA-Z\s]+$/.test(input.trim());
+}
+
+// Location validation: allow letters, spaces, commas, and numbers for real locations
+function isValidLocation(input) {
+  const trimmed = input.trim();
+  if (trimmed.length < 3) return false; // too short is invalid
+  return /^[a-zA-Z0-9\s,]+$/.test(trimmed);
+}
+
+// Report emergency
+async function reportEmergency() {
+  const title = document.getElementById("title").value;
+  const description = document.getElementById("description").value;
+  const location = document.getElementById("location").value;
+  const category = document.getElementById("category").value;
+
+  // Reset errors
+  document.getElementById("title-error").style.display = "none";
+  document.getElementById("description-error").style.display = "none";
+  document.getElementById("location-error").style.display = "none";
+
+  let valid = true;
+  if (!isValidText(title)) { document.getElementById("title-error").style.display = "block"; valid = false; }
+  if (!isValidText(description)) { document.getElementById("description-error").style.display = "block"; valid = false; }
+  if (!isValidLocation(location)) { document.getElementById("location-error").style.display = "block"; valid = false; }
+
+  if (!valid) return;
+
+  const res = await fetch(`${API_URL}/emergencies`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, description, location, category })
+  });
+
+  const data = await res.json();
+  alert(data.message || "Emergency reported!");
+  loadEmergencies();
+
+  // Clear form
+  document.getElementById("title").value = "";
+  document.getElementById("description").value = "";
+  document.getElementById("location").value = "";
+}
+
+// Load emergencies
+async function loadEmergencies() {
+  const res = await fetch(`${API_URL}/emergencies`);
+  const emergencies = await res.json();
+
+  const container = document.getElementById("admin-list");
+  container.innerHTML = "";
+
+  emergencies.forEach(e => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <h4>${e.title}</h4>
+      <p>${e.description}</p>
+      <p>Location: ${e.location}</p>
+      <p>Category: ${e.category}</p>
+      <p>Status: ${e.status}</p>
+      <button onclick="updateStatus(${e.id},'Verified')">Verified</button>
+      <button onclick="updateStatus(${e.id},'In Progress')">In Progress</button>
+      <button onclick="updateStatus(${e.id},'Resolved')">Resolved</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// Update emergency status
+async function updateStatus(id, status) {
+  await fetch(`${API_URL}/emergencies/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status })
+  });
+  loadEmergencies();
+}
+
+// Initialize
+window.onload = loadEmergencies;
+</script>
+</body>
+</html>
