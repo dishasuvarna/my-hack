@@ -103,9 +103,9 @@ async function loadEmergencies() {
       <p class="text-gray-500 mb-1"><span class="font-semibold">Category:</span> ${e.category}</p>
       <p class="text-gray-500 mb-2"><span class="font-semibold">Status:</span> ${e.status}</p>
       <div class="flex gap-2 flex-wrap">
-        <button onclick="updateStatus(${e.id},'Verified')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-colors">Verified</button>
-        <button onclick="updateStatus(${e.id},'In Progress')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded transition-colors">In Progress</button>
-        <button onclick="updateStatus(${e.id},'Resolved')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition-colors">Resolved</button>
+        <button onclick="updateStatus(${e.id}, 'Verified')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-colors">Verified</button>
+        <button onclick="updateStatus(${e.id}, 'In Progress')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded transition-colors">In Progress</button>
+        <button onclick="updateStatus(${e.id}, 'Resolved')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition-colors">Resolved</button>
       </div>
     `;
     container.appendChild(div);
